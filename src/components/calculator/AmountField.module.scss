@@ -1,0 +1,50 @@
+// Campo de valor principal: número grande, legível no telemóvel.
+$font-size-mobile: 2.25rem;
+$font-size-desktop: 2.75rem;
+
+.field {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 0.25rem;
+  transition: border-color 0.15s ease;
+
+  &:focus-within {
+    border-color: var(--ring);
+  }
+}
+
+.affix {
+  font-size: $font-size-mobile * 0.6;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  flex-shrink: 0;
+}
+
+.input {
+  width: 100%;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  outline: none;
+  font-size: $font-size-mobile;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--foreground);
+
+  &::placeholder {
+    color: color-mix(in oklab, var(--muted-foreground) 50%, transparent);
+  }
+}
+
+@media (min-width: 640px) {
+  .affix {
+    font-size: $font-size-desktop * 0.6;
+  }
+
+  .input {
+    font-size: $font-size-desktop;
+  }
+}

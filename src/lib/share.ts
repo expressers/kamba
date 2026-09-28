@@ -1,0 +1,48 @@
+import type { Scenario } from './calculator'
+import { formatKz, formatMoney, formatRate } from './format'
+import type { Currency } from './kamba'
+
+export function summaryText(s: Scenario, currency: Currency, url: string): string {
+  return [
+    `Cartão BAI Kamba — compra de ${formatMoney(s.amount, currency)}`,
+    `Câmbio: ${formatRate(s.rate)} Kz`,
+    ``,
+    `Carregar no Kamba: ${formatKz(s.load)}`,
+    `Total na conta BAI: ${formatKz(s.total)}`,
+    ``,
+    `Simulação: ${url}`,
+  ].join('\n')
+}
+
+/** Partilha pelo menu nativo (telemóvel) ou copia para a área de transferência. */
+export async function shareOrCopy(text: string, url: string): Promise<'shared' | 'copied' | 'cancelled'> {
+  if (navigator.share) {
+    try {
+      await navigator.share({ text, url })
+      return 'shared'
+    } catch (err) {
+      if ((err as Error).name === 'AbortError') return 'cancelled'
+    }
+  }
+  await navigator.clipboard.writeText(text)
+  return 'copied'
+}
+
+/** Partilha um ficheiro pelo menu nativo, ou faz download se não for suportado. */
+export async function shareOrDownload(file: File, title: string): Promise<'shared' | 'downloaded' | 'cancelled'> {
+  if (navigator.canShare?.({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title })
+      return 'shared'
+    } catch (err) {
+      if ((err as Error).name === 'AbortError') return 'cancelled'
+    }
+  }
+  const url = URL.createObjectURL(file)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = file.name
+  a.click()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+  return 'downloaded'
+}
