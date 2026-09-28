@@ -1,0 +1,36 @@
+// Cartão de resultado com o visual de um cartão bancário.
+.card {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: calc(var(--radius) * 1.6);
+  background: linear-gradient(145deg, var(--brand) 0%, color-mix(in oklab, var(--brand) 70%, black) 100%);
+  color: var(--brand-foreground);
+
+  // Brilho dourado no canto, como no cartão físico.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -40% -30% auto auto;
+    width: 70%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle, color-mix(in oklab, var(--gold) 35%, transparent), transparent 70%);
+    z-index: -1;
+  }
+}
+
+.value {
+  font-size: clamp(2rem, 9vw, 2.75rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.secondary {
+  font-size: 1.25rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
