@@ -1,8 +1,12 @@
+import type { Messages } from '@/i18n'
 import type { Scenario } from './calculator'
-import { formatDate, formatKz, formatMoney, formatPct, formatRate, plain } from './format'
-import { EXCHANGE_SOURCE, FEES, type Currency } from './kamba'
+import { plain, type Formatters, type Locale } from './format'
+import { EXCHANGE_SOURCE, type Currency } from './kamba'
 
 export interface PdfDetails {
+  locale: Locale
+  t: Messages['pdf']
+  f: Formatters
   scenario: Scenario
   currency: Currency
   margin: number
@@ -25,14 +29,18 @@ const LINE: [number, number, number] = [226, 232, 240]
 export async function createRequestPdf(d: PdfDetails): Promise<File> {
   const { jsPDF } = await import('jspdf')
   const doc = new jsPDF({ unit: 'mm', format: 'a5' })
-  const s = d.scenario
+  const { t: m, f, scenario: s } = d
   const W = doc.internal.pageSize.getWidth()
   const H = doc.internal.pageSize.getHeight()
   const X = 12
   const R = W - 12
   const t = (text: string) => plain(text)
   const now = new Date()
-  const issued = now.toLocaleDateString('pt-AO', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  const issued = now.toLocaleDateString(d.locale === 'pt' ? 'pt-AO' : 'en-GB', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  })
 
   // Cabeçalho
   doc.setFillColor(...NAVY)
@@ -40,10 +48,10 @@ export async function createRequestPdf(d: PdfDetails): Promise<File> {
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(8)
   doc.setTextColor(...GOLD)
-  doc.text('CARTÃO BAI KAMBA', X, 12)
+  doc.text(m.brand, X, 12)
   doc.setFontSize(15)
   doc.setTextColor(255, 255, 255)
-  doc.text('Pedido de carregamento', X, 20)
+  doc.text(m.title, X, 20)
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8)
   doc.text(issued, R, 12, { align: 'right' })
@@ -52,27 +60,23 @@ export async function createRequestPdf(d: PdfDetails): Promise<File> {
   let y = 44
   doc.setTextColor(...MUTED)
   doc.setFontSize(9)
-  doc.text('Valor a entregar ao titular do cartão', X, y)
+  doc.text(m.amountLabel, X, y)
   y += 11
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(24)
   doc.setTextColor(...NAVY)
-  doc.text(t(formatKz(s.total)), X, y)
+  doc.text(t(f.kz(s.total)), X, y)
   y += 7
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(9)
   doc.setTextColor(...TEXT)
-  doc.text(
-    t(`Para uma compra de ${formatMoney(s.amount, d.currency)}, incluindo todas as comissões e IVA.`),
-    X,
-    y,
-  )
+  doc.text(t(m.forPurchase(f.money(s.amount, d.currency))), X, y)
 
   // Partes envolvidas
   const parties = [
-    ['Compra', d.description],
-    ['Titular do cartão', d.cardholder],
-    ['Pago por', d.payer],
+    [m.purchase, d.description],
+    [m.cardholder, d.cardholder],
+    [m.payer, d.payer],
   ].filter((p): p is [string, string] => Boolean(p[1]?.trim()))
 
   if (parties.length) {
@@ -99,7 +103,7 @@ export async function createRequestPdf(d: PdfDetails): Promise<File> {
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(10)
   doc.setTextColor(...NAVY)
-  doc.text('Como chegámos a este valor', X, y)
+  doc.text(m.detailsTitle, X, y)
   y += 3
 
   const row = (label: string, value: string, strong = false) => {
@@ -113,14 +117,14 @@ export async function createRequestPdf(d: PdfDetails): Promise<File> {
     doc.line(X, y + 2.5, R, y + 2.5)
   }
 
-  row(`Compra ${formatMoney(s.amount, d.currency)} x ${formatRate(s.rate)} Kz`, formatKz(s.baseKz))
-  row(`Comissão de compra (${formatPct(FEES.purchase)})`, formatKz(s.purchaseFee))
-  row(`IVA sobre a comissão (${formatPct(FEES.vat)})`, formatKz(s.purchaseVat))
-  if (s.marginKz > 0) row(`Margem de segurança cambial (${formatPct(d.margin)})`, formatKz(s.marginKz))
-  if (s.existingUsed > 0) row('Saldo já existente no cartão', `- ${formatKz(s.existingUsed)}`)
-  row('Valor a carregar no Kamba', formatKz(s.load), true)
-  row(`Comissão de carregamento (${formatPct(FEES.load)})`, formatKz(s.loadFee))
-  row(`IVA sobre a comissão (${formatPct(FEES.vat)})`, formatKz(s.loadVat))
+  row(m.base(f.money(s.amount, d.currency), f.rate(s.rate)), f.kz(s.baseKz))
+  row(m.purchaseFee, f.kz(s.purchaseFee))
+  row(m.vat, f.kz(s.purchaseVat))
+  if (s.marginKz > 0) row(m.margin(f.pct(d.margin)), f.kz(s.marginKz))
+  if (s.existingUsed > 0) row(m.existing, `- ${f.kz(s.existingUsed)}`)
+  row(m.load, f.kz(s.load), true)
+  row(m.loadFee, f.kz(s.loadFee))
+  row(m.vat, f.kz(s.loadVat))
 
   y += 9
   doc.setFillColor(...NAVY)
@@ -128,8 +132,8 @@ export async function createRequestPdf(d: PdfDetails): Promise<File> {
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(10)
   doc.setTextColor(255, 255, 255)
-  doc.text('Total a entregar', X + 3, y)
-  doc.text(t(formatKz(s.total)), R - 3, y, { align: 'right' })
+  doc.text(m.total, X + 3, y)
+  doc.text(t(f.kz(s.total)), R - 3, y, { align: 'right' })
 
   // Notas
   y += 12
@@ -137,11 +141,9 @@ export async function createRequestPdf(d: PdfDetails): Promise<File> {
   doc.setFontSize(8)
   doc.setTextColor(...MUTED)
   const notes = [
-    `Câmbio de venda BAI de ${formatDate(EXCHANGE_SOURCE.date)}. O banco aplica o câmbio do dia em que a compra é liquidada (1 a 3 dias úteis).`,
-    s.marginKz > 0
-      ? `A margem de ${formatKz(s.marginKz)} protege contra variações do câmbio; o que não for usado fica no cartão.`
-      : 'Sem margem de segurança: se o câmbio subir, a compra pode ser recusada por saldo insuficiente.',
-    'Valores estimados com base no preçário BAI em vigor. Este documento não é emitido pelo BAI.',
+    m.noteRate(f.date(EXCHANGE_SOURCE.date)),
+    s.marginKz > 0 ? m.noteMargin(f.kz(s.marginKz)) : m.noteNoMargin,
+    m.noteDisclaimer,
   ]
   for (const note of notes) {
     const lines = doc.splitTextToSize(t(`• ${note}`), R - X)
@@ -154,14 +156,18 @@ export async function createRequestPdf(d: PdfDetails): Promise<File> {
   doc.line(X, H - 16, R, H - 16)
   doc.setFontSize(8)
   doc.setTextColor(...MUTED)
-  doc.text('Simulação feita em', X, H - 10)
+  doc.text(m.madeAt, X, H - 10.5)
   doc.setTextColor(...NAVY)
-  doc.textWithLink('kamba.expressers.ao', X + 26, H - 10, { url: d.url })
+  doc.textWithLink('kamba.expressers.ao', X + doc.getTextWidth(m.madeAt) + 1.5, H - 10.5, { url: d.url })
   doc.setTextColor(...MUTED)
-  doc.text('Toque para abrir e ajustar', R, H - 10, { align: 'right' })
-  doc.link(0, H - 16, W, 16, { url: d.url })
+  doc.text(m.open, R, H - 10.5, { align: 'right' })
+  doc.link(0, H - 16, W, 9, { url: d.url })
+  doc.setFontSize(7)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(...GOLD)
+  doc.textWithLink(m.poweredBy, (W - doc.getTextWidth(m.poweredBy)) / 2, H - 5, { url: 'https://expressers.ao' })
 
   const stamp = now.toISOString().slice(0, 10)
-  const name = `kamba-${Math.round(s.amount)}${d.currency.toLowerCase()}-${stamp}.pdf`
+  const name = `${m.fileName}-${Math.round(s.amount)}${d.currency.toLowerCase()}-${stamp}.pdf`
   return new File([doc.output('blob')], name, { type: 'application/pdf' })
 }

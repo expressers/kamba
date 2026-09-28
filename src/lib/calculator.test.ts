@@ -10,8 +10,18 @@ describe('parseNumber', () => {
     ['100.000', 100_000],
     ['1.250.000', 1_250_000],
     ['12.5', 12.5],
-  ])('%s → %d', (input, expected) => {
-    expect(parseNumber(input)).toBeCloseTo(expected, 4)
+  ])('pt: %s → %d', (input, expected) => {
+    expect(parseNumber(input, 0, 'pt')).toBeCloseTo(expected, 4)
+  })
+
+  test.each([
+    ['1,000.50', 1000.5],
+    ['100,000', 100_000],
+    ['992.5156', 992.5156],
+    ['992,5156', 992.5156],
+    ['12,5', 12.5],
+  ])('en: %s → %d', (input, expected) => {
+    expect(parseNumber(input, 0, 'en')).toBeCloseTo(expected, 4)
   })
 
   test('usa o fallback para texto inválido ou negativo', () => {

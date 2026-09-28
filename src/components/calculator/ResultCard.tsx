@@ -1,7 +1,7 @@
 import { FileText, Share2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useI18n } from '@/i18n'
 import type { Scenario } from '@/lib/calculator'
-import { formatKz, formatMoney } from '@/lib/format'
 import type { Currency } from '@/lib/kamba'
 import type { Mode } from '@/lib/state'
 import styles from './ResultCard.module.scss'
@@ -15,21 +15,22 @@ interface ResultCardProps {
 }
 
 export function ResultCard({ scenario, mode, currency, onPdf, onShare }: ResultCardProps) {
+  const { t, f } = useI18n()
   const empty = scenario.amount <= 0
 
   const [main, second] =
     mode === 'pay'
       ? [
-          { label: 'Carregue no Kamba', value: formatKz(scenario.load) },
-          { label: 'Precisa ter na conta BAI', value: formatKz(scenario.total) },
+          { label: t.result.load, value: f.kz(scenario.load) },
+          { label: t.result.need, value: f.kz(scenario.total) },
         ]
       : [
-          { label: 'Pode gastar até', value: formatMoney(scenario.amount, currency) },
-          { label: 'Carregue no Kamba', value: formatKz(scenario.load) },
+          { label: t.result.canSpend, value: f.money(scenario.amount, currency) },
+          { label: t.result.load, value: f.kz(scenario.load) },
         ]
 
   return (
-    <section className={`${styles.card} p-5 shadow-lg sm:p-6`} aria-live="polite" aria-label="Resultado">
+    <section className={`${styles.card} p-5 shadow-lg sm:p-6`} aria-live="polite" aria-label={t.result.aria}>
       <p className="text-sm text-white/70">{main.label}</p>
       <p className={styles.value}>{main.value}</p>
 
@@ -39,9 +40,9 @@ export function ResultCard({ scenario, mode, currency, onPdf, onShare }: ResultC
           <p className={styles.secondary}>{second.value}</p>
         </div>
         <p className="text-right text-xs text-white/60">
-          Comissões + IVA
+          {t.result.fees}
           <br />
-          <span className="font-medium text-white/85 tabular-nums">{formatKz(scenario.fees)}</span>
+          <span className="font-medium text-white/85 tabular-nums">{f.kz(scenario.fees)}</span>
         </p>
       </div>
 
@@ -54,7 +55,7 @@ export function ResultCard({ scenario, mode, currency, onPdf, onShare }: ResultC
           className="bg-gold text-gold-foreground hover:bg-gold/90"
         >
           <FileText aria-hidden />
-          Gerar PDF para enviar
+          {t.result.pdf}
         </Button>
         <Button
           type="button"
@@ -63,7 +64,7 @@ export function ResultCard({ scenario, mode, currency, onPdf, onShare }: ResultC
           disabled={empty}
           onClick={onShare}
           className="bg-white/10 text-white hover:bg-white/20 hover:text-white"
-          aria-label="Partilhar resumo"
+          aria-label={t.result.share}
         >
           <Share2 aria-hidden />
         </Button>

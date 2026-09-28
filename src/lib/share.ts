@@ -1,16 +1,17 @@
+import type { Messages } from '@/i18n'
 import type { Scenario } from './calculator'
-import { formatKz, formatMoney, formatRate } from './format'
+import type { Formatters } from './format'
 import type { Currency } from './kamba'
 
-export function summaryText(s: Scenario, currency: Currency, url: string): string {
+export function summaryText(s: Scenario, currency: Currency, url: string, t: Messages, f: Formatters): string {
   return [
-    `Cartão BAI Kamba — compra de ${formatMoney(s.amount, currency)}`,
-    `Câmbio: ${formatRate(s.rate)} Kz`,
+    t.share.purchase(f.money(s.amount, currency)),
+    t.share.rate(f.rate(s.rate)),
     ``,
-    `Carregar no Kamba: ${formatKz(s.load)}`,
-    `Total na conta BAI: ${formatKz(s.total)}`,
+    `${t.share.load}: ${f.kz(s.load)}`,
+    `${t.share.total}: ${f.kz(s.total)}`,
     ``,
-    `Simulação: ${url}`,
+    `${t.share.link}: ${url}`,
   ].join('\n')
 }
 

@@ -1,7 +1,7 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import { useI18n } from '@/i18n'
 import type { Scenario } from '@/lib/calculator'
-import { formatKz, formatMoney, formatPct, formatRate } from '@/lib/format'
-import { FEES, type Currency } from '@/lib/kamba'
+import type { Currency } from '@/lib/kamba'
 
 interface BreakdownProps {
   scenario: Scenario
@@ -10,28 +10,23 @@ interface BreakdownProps {
 }
 
 export function Breakdown({ scenario: s, currency, margin }: BreakdownProps) {
+  const { t, f } = useI18n()
+  const b = t.breakdown
   return (
     <Accordion type="single" collapsible className="rounded-xl border bg-card px-4">
       <AccordionItem value="detalhe" className="border-0">
-        <AccordionTrigger className="py-3.5 hover:no-underline">Ver cálculo detalhado</AccordionTrigger>
+        <AccordionTrigger className="py-3.5 hover:no-underline">{b.title}</AccordionTrigger>
         <AccordionContent>
           <dl className="divide-y text-sm">
-            <Row
-              label={`${formatMoney(s.amount, currency)} × ${formatRate(s.rate)} Kz`}
-              value={formatKz(s.baseKz)}
-            />
-            <Row label={`Comissão de compra ${formatPct(FEES.purchase)}`} value={formatKz(s.purchaseFee)} />
-            <Row label={`IVA ${formatPct(FEES.vat)} da comissão`} value={formatKz(s.purchaseVat)} />
-            {s.marginKz > 0 && (
-              <Row label={`Margem de segurança ${formatPct(margin)}`} value={formatKz(s.marginKz)} />
-            )}
-            {s.existingUsed > 0 && (
-              <Row label="Saldo já no cartão" value={`− ${formatKz(s.existingUsed)}`} />
-            )}
-            <Row label="Carregar no Kamba" value={formatKz(s.load)} strong />
-            <Row label={`Comissão de carregamento ${formatPct(FEES.load)}`} value={formatKz(s.loadFee)} />
-            <Row label={`IVA ${formatPct(FEES.vat)} da comissão`} value={formatKz(s.loadVat)} />
-            <Row label="Total debitado da conta" value={formatKz(s.total)} strong />
+            <Row label={`${f.money(s.amount, currency)} × ${f.rate(s.rate)} Kz`} value={f.kz(s.baseKz)} />
+            <Row label={b.purchaseFee} value={f.kz(s.purchaseFee)} />
+            <Row label={b.vat} value={f.kz(s.purchaseVat)} />
+            {s.marginKz > 0 && <Row label={b.margin(f.pct(margin))} value={f.kz(s.marginKz)} />}
+            {s.existingUsed > 0 && <Row label={b.existing} value={`− ${f.kz(s.existingUsed)}`} />}
+            <Row label={b.load} value={f.kz(s.load)} strong />
+            <Row label={b.loadFee} value={f.kz(s.loadFee)} />
+            <Row label={b.vat} value={f.kz(s.loadVat)} />
+            <Row label={b.total} value={f.kz(s.total)} strong />
           </dl>
         </AccordionContent>
       </AccordionItem>

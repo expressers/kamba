@@ -20,8 +20,8 @@ export default defineConfig([
     },
   },
   {
-    // Componentes gerados pelo shadcn exportam também as variantes (cva).
-    files: ['src/components/ui/**/*.tsx'],
+    // Gerados pelo shadcn (exportam variantes) e o entry de pré-render (só corre no build).
+    files: ['src/components/ui/**/*.tsx', 'src/entry-server.tsx'],
     rules: { 'react-refresh/only-export-components': 'off' },
   },
 ])

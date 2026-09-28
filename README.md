@@ -4,6 +4,17 @@ Calcula quanto carregar no cartão pré-pago **BAI Kamba** para compras em dóla
 
 **Produção:** https://kamba.expressers.ao
 
+## Páginas
+
+| Português | English | Conteúdo |
+| --- | --- | --- |
+| `/` | `/en` | Calculadora |
+| `/como-carregar` | `/en/how-to-load` | Passo a passo |
+| `/taxas` | `/en/fees` | Comissões, IVA e limites |
+| `/perguntas` | `/en/faq` | Perguntas frequentes |
+
+Cada página é pré-renderizada no build para `dist/<caminho>/index.html`, com título, descrição, `canonical`, `hreflang` e JSON-LD próprios. Todos os textos estão em [`src/i18n/pt.ts`](src/i18n/pt.ts) e [`src/i18n/en.ts`](src/i18n/en.ts) — o inglês é tipado a partir do português, por isso o build falha se faltar uma tradução. As rotas estão em [`src/content/routes.ts`](src/content/routes.ts).
+
 ## Funcionalidades
 
 - **Quanto carregar?** — valor da compra (USD/EUR) → quanto carregar no Kamba e quanto ter na conta.
@@ -11,7 +22,8 @@ Calcula quanto carregar no cartão pré-pago **BAI Kamba** para compras em dóla
 - **PDF "Pedido de carregamento"** — valor a entregar ao titular do cartão, com o cálculo completo; partilha pelo menu nativo do telemóvel.
 - **Link partilhável** — `?v=50&m=USD&c=992.5156` reabre a mesma simulação.
 - **PWA instalável** — funciona offline; convite de instalação no Android e instruções no iPhone.
-- **SEO** — HTML pré-renderizado no build, JSON-LD (`WebApplication` + `FAQPage`), Open Graph, sitemap.
+- **Português e inglês** — troca de idioma em qualquer página, mantendo os valores digitados.
+- **SEO** — HTML pré-renderizado por página e idioma, `hreflang`, JSON-LD (`WebApplication`, `FAQPage`, `BreadcrumbList`), Open Graph e sitemap gerado no build.
 
 ## Stack
 
@@ -40,7 +52,7 @@ Tudo está em [`src/lib/kamba.ts`](src/lib/kamba.ts):
 | Câmbio (`EXCHANGE_RATES`) | [BAI — Câmbios e Valores](https://www.bancobai.ao/pt/cambios-e-valores), coluna *Venda* de Divisas |
 | Limite mensal | Comunicado do BAI de Junho de 2024 (250 USD) |
 
-Actualize também as datas em `PRICING_SOURCE` / `EXCHANGE_SOURCE` e o `lastmod` de `public/sitemap.xml`. O site do BAI bloqueia pedidos automáticos, por isso o câmbio não é obtido em tempo real — o utilizador pode editá-lo na app.
+Actualize também as datas em `PRICING_SOURCE` / `EXCHANGE_SOURCE` (o `sitemap.xml` é gerado no build). O site do BAI bloqueia pedidos automáticos, por isso o câmbio não é obtido em tempo real — o utilizador pode editá-lo na app.
 
 ## Gitflow
 

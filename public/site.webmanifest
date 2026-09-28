@@ -39,7 +39,7 @@
   "shortcuts": [
     {
       "name": "Taxas do Kamba",
-      "url": "/#taxas",
+      "url": "/taxas",
       "icons": [
         {
           "src": "/icon-192.png",
@@ -49,7 +49,17 @@
     },
     {
       "name": "Perguntas frequentes",
-      "url": "/#perguntas",
+      "url": "/perguntas",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Kamba Calculator (English)",
+      "url": "/en",
       "icons": [
         {
           "src": "/icon-192.png",

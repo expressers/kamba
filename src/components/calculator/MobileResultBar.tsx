@@ -1,7 +1,7 @@
 import { FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useI18n } from '@/i18n'
 import type { Scenario } from '@/lib/calculator'
-import { formatKz, formatMoney } from '@/lib/format'
 import type { Currency } from '@/lib/kamba'
 import type { Mode } from '@/lib/state'
 
@@ -15,10 +15,11 @@ interface MobileResultBarProps {
 
 /** Barra fixa no telemóvel com o resultado, visível quando o cartão de resultado sai do ecrã. */
 export function MobileResultBar({ visible, scenario, mode, currency, onPdf }: MobileResultBarProps) {
+  const { t, f } = useI18n()
   const [label, value] =
     mode === 'pay'
-      ? ['Precisa ter na conta', formatKz(scenario.total)]
-      : ['Pode gastar até', formatMoney(scenario.amount, currency)]
+      ? [t.result.barNeed, f.kz(scenario.total)]
+      : [t.result.canSpend, f.money(scenario.amount, currency)]
 
   return (
     <div
@@ -29,10 +30,14 @@ export function MobileResultBar({ visible, scenario, mode, currency, onPdf }: Mo
       }`}
     >
       <div className="mx-auto flex max-w-xl items-center gap-3 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-        <a href="#calculadora" className="min-w-0 flex-1">
+        <button
+          type="button"
+          onClick={() => window.scrollTo({ top: 0 })}
+          className="min-w-0 flex-1 text-left"
+        >
           <span className="block text-xs text-white/70">{label}</span>
           <span className="block truncate text-lg font-bold tabular-nums">{value}</span>
-        </a>
+        </button>
         <Button onClick={onPdf} className="bg-gold text-gold-foreground hover:bg-gold/90">
           <FileText aria-hidden />
           PDF

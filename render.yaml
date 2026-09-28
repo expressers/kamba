@@ -18,6 +18,29 @@ services:
         value: 1.4.2
       - key: NODE_VERSION
         value: '24'
+    # Cada página tem o seu HTML pré-renderizado em <caminho>/index.html.
+    routes:
+      - type: rewrite
+        source: /como-carregar
+        destination: /como-carregar/index.html
+      - type: rewrite
+        source: /taxas
+        destination: /taxas/index.html
+      - type: rewrite
+        source: /perguntas
+        destination: /perguntas/index.html
+      - type: rewrite
+        source: /en
+        destination: /en/index.html
+      - type: rewrite
+        source: /en/how-to-load
+        destination: /en/how-to-load/index.html
+      - type: rewrite
+        source: /en/fees
+        destination: /en/fees/index.html
+      - type: rewrite
+        source: /en/faq
+        destination: /en/faq/index.html
     headers:
       # Ficheiros com hash: cache permanente.
       - path: /assets/*
@@ -27,7 +50,28 @@ services:
       - path: /
         name: Cache-Control
         value: no-cache
-      - path: /index.html
+      - path: /*.html
+        name: Cache-Control
+        value: no-cache
+      - path: /como-carregar
+        name: Cache-Control
+        value: no-cache
+      - path: /taxas
+        name: Cache-Control
+        value: no-cache
+      - path: /perguntas
+        name: Cache-Control
+        value: no-cache
+      - path: /en
+        name: Cache-Control
+        value: no-cache
+      - path: /en/how-to-load
+        name: Cache-Control
+        value: no-cache
+      - path: /en/fees
+        name: Cache-Control
+        value: no-cache
+      - path: /en/faq
         name: Cache-Control
         value: no-cache
       - path: /sw.js

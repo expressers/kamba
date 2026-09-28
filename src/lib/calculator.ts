@@ -1,3 +1,4 @@
+import type { Locale } from './format'
 import { FEES } from './kamba'
 
 export interface ScenarioInput {
@@ -78,13 +79,30 @@ export function maxAmountForBudget(
   return cardAvailable / (rate * PURCHASE_FACTOR * (1 + margin / 100))
 }
 
-/** Converte o texto de um input numérico ("1.000,50", "100.000", "1000,5" ou "1000.5"). */
-export function parseNumber(value: string, fallback = 0): number {
+/**
+ * Converte o texto de um input numérico, conforme o idioma:
+ * pt → "1.000,50", "100.000", "992,5"; en → "1,000.50", "100,000", "992.5".
+ * Com os dois separadores, o último é sempre o decimal.
+ */
+export function parseNumber(value: string, fallback = 0, locale: Locale = 'pt'): number {
   let text = value.replace(/\s/g, '')
-  // Com vírgula, ou com pontos em grupos de 3 dígitos, o ponto é separador de milhares.
-  if (text.includes(',') || /^\d{1,3}(\.\d{3})+$/.test(text)) {
-    text = text.replace(/\./g, '').replace(',', '.')
+  const lastComma = text.lastIndexOf(',')
+  const lastDot = text.lastIndexOf('.')
+
+  let decimal: ',' | '.' | null = null
+  if (lastComma >= 0 && lastDot >= 0) decimal = lastComma > lastDot ? ',' : '.'
+  else if (lastComma >= 0 || lastDot >= 0) {
+    const sep = lastComma >= 0 ? ',' : '.'
+    const groupsOfThree = new RegExp(`^\\d{1,3}(\\${sep}\\d{3})+$`).test(text)
+    const thousands = locale === 'pt' ? '.' : ','
+    decimal = groupsOfThree && sep === thousands ? null : sep
   }
+
+  const group = decimal === ',' ? '.' : ','
+  text = text.split(group).join('')
+  if (decimal === ',') text = text.replace(',', '.')
+  else if (decimal === null) text = text.replace(/[.,]/g, '')
+
   const n = parseFloat(text)
   return Number.isFinite(n) && n >= 0 ? n : fallback
 }

@@ -1,24 +1,29 @@
-// Injeta o HTML renderizado no servidor e o JSON-LD em dist/index.html,
+// Gera um HTML completo por página e idioma (dist/<caminho>/index.html) e o sitemap,
 // para que motores de busca e pré-visualizações vejam o conteúdo sem JavaScript.
-import { readFile, rm, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 
-const root = fileURLToPath(new URL('..', import.meta.url))
-const serverEntry = new URL('../dist-server/entry-server.js', import.meta.url)
-const indexPath = `${root}dist/index.html`
+const dist = fileURLToPath(new URL('../dist/', import.meta.url))
+const serverDir = fileURLToPath(new URL('../dist-server/', import.meta.url))
+const { ROUTES, render, head, htmlLang, sitemap } = await import(`${serverDir}entry-server.js`)
 
-const { render, structuredData } = await import(serverEntry.href)
+const template = await readFile(`${dist}index.html`, 'utf8')
+for (const marker of ['<!--page-head-->', '<div id="root"></div>', '<html lang="pt-AO">']) {
+  if (!template.includes(marker)) throw new Error(`Marcador em falta no index.html: ${marker}`)
+}
 
-const jsonLd = structuredData()
-  .map((data) => `<script type="application/ld+json">${JSON.stringify(data).replace(/</g, '\\u003c')}</script>`)
-  .join('\n    ')
+for (const { path } of ROUTES) {
+  const html = template
+    .replace('<html lang="pt-AO">', `<html lang="${htmlLang(path)}">`)
+    .replace('<!--page-head-->', head(path))
+    .replace('<div id="root"></div>', `<div id="root">${render(path)}</div>`)
 
-const html = (await readFile(indexPath, 'utf8'))
-  .replace('<div id="root"></div>', `<div id="root">${render()}</div>`)
-  .replace('<!--structured-data-->', jsonLd)
+  const dir = path === '/' ? dist : `${dist}${path.slice(1)}/`
+  await mkdir(dir, { recursive: true })
+  await writeFile(`${dir}index.html`, html)
+  console.log(`✓ ${path}`)
+}
 
-if (!html.includes('application/ld+json')) throw new Error('Marcador <!--structured-data--> em falta no index.html')
-
-await writeFile(indexPath, html)
-await rm(`${root}dist-server`, { recursive: true, force: true })
-console.log('✓ dist/index.html pré-renderizado')
+await writeFile(`${dist}sitemap.xml`, sitemap(new Date().toISOString().slice(0, 10)))
+await rm(serverDir, { recursive: true, force: true })
+console.log(`✓ sitemap.xml (${ROUTES.length} páginas)`)

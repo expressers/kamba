@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/drawer'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { formatKz } from '@/lib/format'
+import { useI18n } from '@/i18n'
 
 export interface PdfFields {
   description: string
@@ -26,13 +26,10 @@ interface PdfDrawerProps {
   onGenerate: (fields: PdfFields) => Promise<void>
 }
 
-const FIELDS: { id: keyof PdfFields; label: string; placeholder: string }[] = [
-  { id: 'description', label: 'Para que é a compra?', placeholder: 'Ex: Subscrição Netflix' },
-  { id: 'cardholder', label: 'Titular do cartão Kamba', placeholder: 'Quem recebe o dinheiro' },
-  { id: 'payer', label: 'Quem paga', placeholder: 'Quem entrega o dinheiro' },
-]
+const FIELDS: (keyof PdfFields)[] = ['description', 'cardholder', 'payer']
 
 export function PdfDrawer({ open, onOpenChange, total, onGenerate }: PdfDrawerProps) {
+  const { t, f } = useI18n()
   const [fields, setFields] = useState<PdfFields>({ description: '', cardholder: '', payer: '' })
   const [busy, setBusy] = useState(false)
 
@@ -51,24 +48,20 @@ export function PdfDrawer({ open, onOpenChange, total, onGenerate }: PdfDrawerPr
       <DrawerContent>
         <form onSubmit={submit} className="mx-auto w-full max-w-md">
           <DrawerHeader className="text-left">
-            <DrawerTitle>Enviar a quem vai pagar</DrawerTitle>
-            <DrawerDescription>
-              O PDF mostra que é preciso entregar{' '}
-              <strong className="text-foreground tabular-nums">{formatKz(total)}</strong> ao titular do
-              cartão, com o cálculo completo. Os campos abaixo são opcionais.
-            </DrawerDescription>
+            <DrawerTitle>{t.pdfDrawer.title}</DrawerTitle>
+            <DrawerDescription>{t.pdfDrawer.description(f.kz(total))}</DrawerDescription>
           </DrawerHeader>
 
           <div className="space-y-4 px-4">
-            {FIELDS.map((f) => (
-              <div key={f.id} className="space-y-1.5">
-                <Label htmlFor={`pdf-${f.id}`}>{f.label}</Label>
+            {FIELDS.map((id) => (
+              <div key={id} className="space-y-1.5">
+                <Label htmlFor={`pdf-${id}`}>{t.pdfDrawer[`${id}_label`]}</Label>
                 <Input
-                  id={`pdf-${f.id}`}
+                  id={`pdf-${id}`}
                   maxLength={60}
-                  placeholder={f.placeholder}
-                  value={fields[f.id]}
-                  onChange={(e) => setFields((prev) => ({ ...prev, [f.id]: e.target.value }))}
+                  placeholder={t.pdfDrawer[`${id}_placeholder`]}
+                  value={fields[id]}
+                  onChange={(e) => setFields((prev) => ({ ...prev, [id]: e.target.value }))}
                 />
               </div>
             ))}
@@ -77,7 +70,7 @@ export function PdfDrawer({ open, onOpenChange, total, onGenerate }: PdfDrawerPr
           <DrawerFooter>
             <Button type="submit" size="lg" disabled={busy}>
               {busy ? <Loader2 className="animate-spin" aria-hidden /> : <FileDown aria-hidden />}
-              Gerar e partilhar PDF
+              {t.pdfDrawer.submit}
             </Button>
           </DrawerFooter>
         </form>

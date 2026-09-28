@@ -1,7 +1,8 @@
 // Service worker da Calculadora Kamba: abre sem rede e mantém os ficheiros em cache.
 // Incremente a versão para forçar a limpeza da cache antiga.
-const CACHE = 'kamba-v1'
-const PRECACHE = ['/', '/site.webmanifest', '/favicon.svg', '/icon-192.png', '/icon-512.png']
+const CACHE = 'kamba-v2'
+const PAGES = ['/', '/como-carregar', '/taxas', '/perguntas', '/en', '/en/how-to-load', '/en/fees', '/en/faq']
+const PRECACHE = [...PAGES, '/site.webmanifest', '/favicon.svg', '/icon-192.png', '/icon-512.png']
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(PRECACHE)))
@@ -22,16 +23,20 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url)
   if (request.method !== 'GET' || url.origin !== self.location.origin) return
 
-  // Página: rede primeiro (câmbio e taxas actualizados), cache se estiver offline.
+  // Páginas: rede primeiro (câmbio e taxas actualizados), cache se estiver offline.
+  // A chave ignora a query (?v=...) para uma simulação partilhada abrir sem rede.
   if (request.mode === 'navigate') {
+    const key = url.pathname.replace(/\/+$/, '') || '/'
     event.respondWith(
       fetch(request)
         .then((response) => {
-          const copy = response.clone()
-          caches.open(CACHE).then((cache) => cache.put('/', copy))
+          if (response.ok) {
+            const copy = response.clone()
+            caches.open(CACHE).then((cache) => cache.put(key, copy))
+          }
           return response
         })
-        .catch(() => caches.match('/')),
+        .catch(() => caches.match(key).then((cached) => cached || caches.match(key.startsWith('/en') ? '/en' : '/'))),
     )
     return
   }

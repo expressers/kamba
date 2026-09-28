@@ -33,6 +33,8 @@ $font-size-desktop: 2.75rem;
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
   color: var(--foreground);
+  // Cursor bem visível na cor da marca, para se ver a piscar no campo principal.
+  caret-color: var(--primary);
 
   &::placeholder {
     color: color-mix(in oklab, var(--muted-foreground) 50%, transparent);
