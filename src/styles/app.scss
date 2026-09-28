@@ -1,0 +1,38 @@
+// Comportamento de "app nativa": aplicado sobretudo no telemóvel e quando instalada (PWA).
+$header-height: 3.5rem;
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: $header-height + 1rem;
+
+  @media (prefers-reduced-motion: reduce) {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  // Sem o "elástico" a puxar a página inteira nem zoom por duplo toque.
+  overscroll-behavior-y: none;
+  touch-action: manipulation;
+  text-size-adjust: 100%;
+}
+
+// Botões e ligações sem selecção de texto acidental ao tocar.
+button,
+[role='tab'],
+[role='button'] {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+// Cabeçalho abaixo da barra de estado/notch quando instalada.
+.app-header {
+  padding-top: env(safe-area-inset-top);
+}
+
+@media (display-mode: standalone) {
+  body {
+    // Em modo app, sem menu de contexto do iOS ao manter o dedo pressionado.
+    -webkit-touch-callout: none;
+  }
+}

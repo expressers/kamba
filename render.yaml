@@ -1,0 +1,97 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+# Site estático publicado a partir de `main` (Gitflow: só releases e hotfixes chegam aqui).
+services:
+  - type: web
+    name: kamba
+    runtime: static
+    branch: main
+    buildCommand: bun install --frozen-lockfile && bun run build
+    staticPublishPath: ./dist
+    # Só publica depois de o workflow de CI (lint, testes, build) passar.
+    autoDeployTrigger: checksPass
+    previews:
+      generation: automatic
+    domains:
+      - kamba.expressers.ao
+    envVars:
+      - key: BUN_VERSION
+        value: 1.4.2
+      - key: NODE_VERSION
+        value: '24'
+    # Cada página tem o seu HTML pré-renderizado em <caminho>/index.html.
+    routes:
+      - type: rewrite
+        source: /como-carregar
+        destination: /como-carregar/index.html
+      - type: rewrite
+        source: /taxas
+        destination: /taxas/index.html
+      - type: rewrite
+        source: /perguntas
+        destination: /perguntas/index.html
+      - type: rewrite
+        source: /en
+        destination: /en/index.html
+      - type: rewrite
+        source: /en/how-to-load
+        destination: /en/how-to-load/index.html
+      - type: rewrite
+        source: /en/fees
+        destination: /en/fees/index.html
+      - type: rewrite
+        source: /en/faq
+        destination: /en/faq/index.html
+    headers:
+      # Ficheiros com hash: cache permanente.
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+      # Página, service worker e manifesto: revalidar sempre.
+      - path: /
+        name: Cache-Control
+        value: no-cache
+      - path: /*.html
+        name: Cache-Control
+        value: no-cache
+      - path: /como-carregar
+        name: Cache-Control
+        value: no-cache
+      - path: /taxas
+        name: Cache-Control
+        value: no-cache
+      - path: /perguntas
+        name: Cache-Control
+        value: no-cache
+      - path: /en
+        name: Cache-Control
+        value: no-cache
+      - path: /en/how-to-load
+        name: Cache-Control
+        value: no-cache
+      - path: /en/fees
+        name: Cache-Control
+        value: no-cache
+      - path: /en/faq
+        name: Cache-Control
+        value: no-cache
+      - path: /sw.js
+        name: Cache-Control
+        value: no-cache
+      - path: /site.webmanifest
+        name: Cache-Control
+        value: no-cache
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: Permissions-Policy
+        value: camera=(), microphone=(), geolocation=()
+      - path: /*
+        name: Strict-Transport-Security
+        value: max-age=31536000; includeSubDomains
